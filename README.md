@@ -113,4 +113,4 @@ More detail is available in [Power-monitoring hardware](docs/power-monitoring.md
 Flip was a collaborative university project completed by Muhammad Abubakar, Josiah Tse, Ihsaan Hussain, Apshara Amiruzzaman, and Usayd Hussain. This repository is a personal portfolio record of Muhammad's work; it does not claim sole ownership of the full robot or the team codebase.
 
 For the full source tree and wider team implementation, visit the [original Flip repository](https://github.com/FlyawayNutria/Flip).
-
+<img width="1940" height="525" alt="figure-2-4-control-loop" src="https://github.com/user-attachments/assets/c392782c-0629-4441-a408-6fd4e55275c4" />
