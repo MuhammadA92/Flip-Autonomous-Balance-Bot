@@ -49,19 +49,11 @@ The original university specification and starter platform are documented in the
 
 ## Control architecture
 
-```mermaid
-flowchart TD
-    A["MPU6050 readings"] --> B["Calibration and complementary filter"]
-    B --> C["Tilt and gyro rate"]
-    D["Target velocity"] --> E["Velocity outer loop"]
-    E --> F["Dynamic tilt setpoint"]
-    C --> G["Inner balance controller"]
-    F --> G
-    G --> H["Integrated wheel velocity"]
-    H --> I["Stepper motors"]
-```
+<img width="1940" height="525" alt="Figure 2.4: Flip control-loop block diagram" src="https://github.com/user-attachments/assets/c392782c-0629-4441-a408-6fd4e55275c4" />
 
-The inner loop stabilised the inverted-pendulum dynamics. A velocity outer loop adjusted the target tilt to command forward and backward movement while preserving balance. The team also implemented differential steering and gyro-based closed-loop turns.
+*Control-loop block diagram from the group report, Figure 2.4.* The PI velocity controller sets the target tilt; the tilt controller produces acceleration, which is integrated into the wheel-velocity command. The PD yaw controller adds a differential steering offset. Tilt and heading feed back through the MPU6050.
+
+The report labels the velocity feedback “wheel encoders.” The implementation used the stepper library's speed estimate (a virtual encoder), not physical wheel encoders.
 
 The final static-control structure was:
 
@@ -112,5 +104,4 @@ More detail is available in [Power-monitoring hardware](docs/power-monitoring.md
 
 Flip was a collaborative university project completed by Muhammad Abubakar, Josiah Tse, Ihsaan Hussain, Apshara Amiruzzaman, and Usayd Hussain. This repository is a personal portfolio record of Muhammad's work; it does not claim sole ownership of the full robot or the team codebase.
 
-For the full source tree and wider team implementation, visit the [original Flip repository](https://github.com/FlyawayNutria/Flip).
-<img width="1940" height="525" alt="figure-2-4-control-loop" src="https://github.com/user-attachments/assets/c392782c-0629-4441-a408-6fd4e55275c4" />
+For access to the full source tree and details of the wider team implementation, please contact the owner of the [original Flip repository](https://github.com/FlyawayNutria/Flip).
