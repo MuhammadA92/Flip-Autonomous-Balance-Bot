@@ -1,6 +1,12 @@
 # Control System Development
 
-This note records the balance- and movement-control work I contributed to the Flip robot. It focuses on the engineering progression, including approaches that were tested and later replaced.
+I co-developed Flip's balancing and movement control with Josiah. Here I explain the integrated controller we reached, followed by the experiments I used to get there.
+
+## Final integrated control arrangement
+
+After we fixed loose wheels, we used a **continuously active PI velocity outer loop**. It compared target velocity with the stepper library's speed estimate and adjusted the tilt setpoint. The inner tilt controller used the MPU6050 angle and gyro-rate feedback to command motor acceleration; integrating that command updated wheel speed. A separate PD yaw controller provided a differential steering offset for turning. Our block diagram in the README shows these paths together.
+
+We did not use physical wheel encoders, so our speed estimate could not detect wheel slip or missed steps. The specific gains changed during tuning. The `Kv` expression below describes a tested static-balancing stage, while the continuously active PI outer loop describes our final integrated movement arrangement.
 
 ## Tilt estimation
 
@@ -31,7 +37,7 @@ The last approach represented the operating condition most accurately. Averaging
 
 The first controller mapped angle error directly to wheel velocity with proportional gain. Increasing the gain alone did not allow the robot to recover because the configured stepper acceleration limit prevented the wheels from moving under the centre of mass quickly enough.
 
-Increasing the limit from **200 rad/s² to 1000 rad/s²** allowed a proportional gain of approximately **24** to drive the system past the equilibrium point, confirming that the controller had sufficient authority. The response was still underdamped.
+Increasing the limit from **200 rad/sÂ² to 1000 rad/sÂ²** allowed a proportional gain of approximately **24** to drive the system past the equilibrium point, confirming that the controller had sufficient authority. The response was still underdamped.
 
 A derivative term was added to reduce overshoot. It was first calculated from successive angle errors, then replaced by the MPU6050 gyroscope rate. The direct rate measurement responded earlier and avoided the noise amplification associated with numerical differentiation.
 
@@ -55,7 +61,7 @@ target_acceleration = Kp * angle_error
                     - Kv * integrated_velocity
 ```
 
-This behaved like artificial friction. It opposed excessive accumulated wheel velocity without making the controller overly sensitive to small, high-frequency angle changes.
+This behaved like artificial friction. It opposed excessive accumulated wheel velocity without making the controller overly sensitive to small, high-frequency angle changes. It was useful during **static-balance tuning**. We reduced or removed `Kv` while tuning movement, so I do not present this equation as the final integrated controller.
 
 ## Dynamic movement experiments
 
@@ -76,7 +82,7 @@ Static balancing and movement initially appeared to require different controller
 
 Fixed braking durations were unreliable because the robot did not always reach maximum velocity before a command was released. A velocity-threshold exit reduced drift, but aggressive braking and abrupt gain changes caused vibration and falls.
 
-Later testing showed that loose wheels had contributed significantly to the apparent controller instability. After the mechanical fault was corrected, the team returned to a simpler continuously active velocity outer loop, which avoided disruptive enable/disable transitions.
+Later we found that loose wheels had contributed significantly to the apparent controller instability. Once we fixed them, we returned to a continuously active **PI velocity outer loop**. It avoided disruptive enable/disable transitions and addressed steady-state velocity error from friction. We did not retain the state machine as our final movement strategy.
 
 ## Limitations
 
@@ -84,4 +90,3 @@ Later testing showed that loose wheels had contributed significantly to the appa
 - Position control needed explicit velocity damping to stop reliably.
 - Gain scheduling introduced discontinuities unless transitions were smoothed.
 - Network and telemetry work had to be kept from disturbing the real-time control loop.
-
