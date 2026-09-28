@@ -35,7 +35,7 @@ The sections below explain my contribution and the experiments that led to this 
 
 - Co-developed the robot's static and dynamic balancing system and remote movement control.
 - Developed and tuned the inner balance controller, progressing from proportional velocity control to gyro-damped PD control with acceleration-based motor commands.
-- Identified stepper acceleration as an early limiting factor and increased the configured limit from **200 rad/sÂ² to 1000 rad/sÂ²**.
+- Identified stepper acceleration as an early limiting factor and increased the configured limit from **200 rad/s² to 1000 rad/s²**.
 - Used the MPU6050 gyroscope rate directly for derivative damping, avoiding the delay and noise amplification of numerical differentiation.
 - Tested a velocity-damping term that reduced low-frequency oscillation during static-balance tuning without the motor heating and current increase caused by excessive derivative gain. It was removed during later movement-controller tuning.
 - Investigated position control, wheel odometry, moving-target control, tilt-pulse movement, and state-based gain scheduling.
@@ -51,7 +51,7 @@ The sections below explain my contribution and the experiments that led to this 
 ### Battery and power monitoring
 
 - Designed monitoring for battery voltage, motor-rail current, and 5 V electronics-rail current.
-- Used the existing high-side shunts on the power PCB: **0.1 Î© for the motors** and **0.01 Î© for the 5 V rail**.
+- Used the existing high-side shunts on the power PCB: **0.1 Ω for the motors** and **0.01 Ω for the 5 V rail**.
 - Designed potential-divider, differential-amplifier, and non-inverting gain stages around an **MCP6022 rail-to-rail dual op-amp**.
 - Simulated both sensing circuits in LTspice and selected gains that used most of the **0-4.096 V ADC range** without exceeding it.
 - Built and tested the circuits on breadboard, selected closely matched resistors, adjusted component values from measured results, and soldered the final perfboard implementation.
@@ -63,7 +63,7 @@ The sections below explain my contribution and the experiments that led to this 
 
 *Control-loop block diagram from the group report, Figure 2.4.* It depicts the final cascaded velocity and tilt control concept, with a separate yaw controller mixed into the motor command. The MPU6050 supplies tilt and yaw-rate feedback.
 
-The report labels the velocity feedback â€œwheel encoders.â€ The implementation used the stepper library's speed estimate (a virtual encoder), not physical wheel encoders.
+The report labels the velocity feedback “wheel encoders.” The implementation used the stepper library's speed estimate (a virtual encoder), not physical wheel encoders.
 
 During static-balance development, a tested controller included velocity damping:
 
@@ -82,15 +82,15 @@ More detail is available in [Control system development](control-system.md).
 | Measurement | Interface | Purpose |
 |---|---|---|
 | Battery voltage | Potential divider | Estimate remaining battery level safely |
-| Motor current | 0.1 Î© shunt + differential and gain stages | Measure motor demand during balancing and movement |
-| 5 V rail current | 0.01 Î© shunt + differential and gain stages | Measure the ESP32, Raspberry Pi, and peripheral load |
+| Motor current | 0.1 Ω shunt + differential and gain stages | Measure motor demand during balancing and movement |
+| 5 V rail current | 0.01 Ω shunt + differential and gain stages | Measure the ESP32, Raspberry Pi, and peripheral load |
 
 The practical calibration sweeps remained highly linear:
 
-| Circuit | Measured calibration | RÂ² |
+| Circuit | Measured calibration | R² |
 |---|---:|---:|
-| Motor rail | `Vout = 16.936 * Î”Vin + 0.2617` | 0.9994 |
-| 5 V rail | `Vout = 97.936 * Î”Vin + 0.0179` | 0.9981 |
+| Motor rail | `Vout = 16.936 * ΔVin + 0.2617` | 0.9994 |
+| 5 V rail | `Vout = 97.936 * ΔVin + 0.0179` | 0.9981 |
 
 More detail is available in [Power-monitoring hardware](power-monitoring.md).
 
@@ -112,6 +112,6 @@ More detail is available in [Power-monitoring hardware](power-monitoring.md).
 
 ## Project ownership
 
-Flip was a collaborative university project completed by a group. This repository is a personal portfolio record of Muhammad's work; it does not claim sole ownership of the full robot or the team codebase.
+Flip was a collaborative university project completed by 5 undergraduate students. This repository is a personal portfolio record of Muhammad's work; it does not claim sole ownership of the full robot or the team codebase.
 
 For access to the full source tree and details of the wider team implementation, please contact the owner of the [original Flip repository](https://github.com/FlyawayNutria/Flip).
