@@ -112,6 +112,6 @@ More detail is available in [Power-monitoring hardware](power-monitoring.md).
 
 ## Project ownership
 
-Flip was a collaborative university project completed by Muhammad Abubakar, Josiah Tse, Ihsaan Hussain, Apshara Amiruzzaman, and Usayd Hussain. This repository is a personal portfolio record of Muhammad's work; it does not claim sole ownership of the full robot or the team codebase.
+Flip was a collaborative university project completed by a group. This repository is a personal portfolio record of Muhammad's work; it does not claim sole ownership of the full robot or the team codebase.
 
 For access to the full source tree and details of the wider team implementation, please contact the owner of the [original Flip repository](https://github.com/FlyawayNutria/Flip).
