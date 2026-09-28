@@ -65,7 +65,7 @@ target_acceleration = Kp * angle_error
 
 The acceleration command was integrated each control iteration to obtain the target wheel velocity. This produced smoother wheel commands than sending discontinuous velocity steps directly to the motors.
 
-More detail is available in [Control system development](docs/control-system.md).
+More detail is available in [Control system development](control-system.md).
 
 ## Power-monitoring architecture
 
@@ -82,7 +82,7 @@ The practical calibration sweeps remained highly linear:
 | Motor rail | `Vout = 16.936 * ΔVin + 0.2617` | 0.9994 |
 | 5 V rail | `Vout = 97.936 * ΔVin + 0.0179` | 0.9981 |
 
-More detail is available in [Power-monitoring hardware](docs/power-monitoring.md).
+More detail is available in [Power-monitoring hardware](power-monitoring.md).
 
 ## Selected engineering results
 
