@@ -1,6 +1,6 @@
 # Flip Autonomous Balance Bot
 
-An autonomous two-wheel balancing robot developed for the Imperial College London second-year Electronics Design Project in summer 2026.
+A two-wheel balancing robot developed for the Imperial College London second-year Electronics Design Project in summer 2026. The group combined balancing, remote control, sensor-driven navigation, video, and power telemetry in one demonstrator.
 
 This repository documents my individual engineering contribution to **Flip**, a five-person group project. My work focused on balance control, motion-control experiments, IMU calibration, and the analogue hardware and software used to monitor the robot's batteries and power consumption.
 
@@ -19,17 +19,27 @@ The robot was required to:
 
 The original university specification and starter platform are documented in the supervisor's [Balance Robot technical guide](https://github.com/edstott/EE2Project/tree/main/balance-robot).
 
+## Final integrated system
+
+- **Operator interface:** A Raspberry Pi hosted the web dashboard for manual control, mode selection, live video, and telemetry. It exchanged commands and telemetry with the ESP32 over USB serial/UART at 115200 baud.
+- **Balancing and movement:** The ESP32 ran the approximately 100 Hz inner balance loop using the MPU6050 tilt estimate. A continuously active **PI velocity outer loop** adjusted the target tilt for forward/backward movement. The inner tilt controller produced a motor acceleration command, which was integrated into the wheel-speed command. A separate PD yaw controller added a differential steering offset for turns.
+- **Velocity feedback:** The control software used the stepper library's speed estimate. There were **no physical wheel encoders**, so wheel slip and missed steps were not directly measured.
+- **Autonomous functions:** The team adapted IR line-following logic for continuous movement on the balancing robot and implemented ToF-based obstacle/maze-navigation logic. The report describes integration and tests, but gives its clearest quantitative final result for upright balance; it does not establish a measured end-to-end success rate for every autonomous mode.
+- **Power telemetry:** Battery voltage and the high-side current-sense signals for the 5 V and motor/battery rails were conditioned for the MCP3208 ADC. The ESP32 read three ADC channels over SPI; the Pi received analogue readings in telemetry, and the web client applied the calibration equations to display voltage, current, and power.
+
+The sections below explain my contribution and the experiments that led to this design. In particular, the position controller and the idle/driving/braking state machine were **development experiments**, not the final movement controller.
+
 ## My contribution
 
 ### Balance and motion control
 
 - Co-developed the robot's static and dynamic balancing system and remote movement control.
 - Developed and tuned the inner balance controller, progressing from proportional velocity control to gyro-damped PD control with acceleration-based motor commands.
-- Identified stepper acceleration as an early limiting factor and increased the configured limit from **200 rad/s² to 1000 rad/s²**.
+- Identified stepper acceleration as an early limiting factor and increased the configured limit from **200 rad/sÂ² to 1000 rad/sÂ²**.
 - Used the MPU6050 gyroscope rate directly for derivative damping, avoiding the delay and noise amplification of numerical differentiation.
-- Added a velocity-damping term to reduce persistent low-frequency oscillation without the motor heating and current increase caused by excessive derivative gain.
+- Tested a velocity-damping term that reduced low-frequency oscillation during static-balance tuning without the motor heating and current increase caused by excessive derivative gain. It was removed during later movement-controller tuning.
 - Investigated position control, wheel odometry, moving-target control, tilt-pulse movement, and state-based gain scheduling.
-- Developed and tested idle, driving, and braking states to study drift, stopping behaviour, and controller transitions.
+- Developed and tested idle, driving, and braking states to study drift, stopping behaviour, and controller transitions; the team ultimately used a continuously active PI velocity outer loop instead.
 
 ### IMU and balance-point calibration
 
@@ -41,7 +51,7 @@ The original university specification and starter platform are documented in the
 ### Battery and power monitoring
 
 - Designed monitoring for battery voltage, motor-rail current, and 5 V electronics-rail current.
-- Used the existing high-side shunts on the power PCB: **0.1 Ω for the motors** and **0.01 Ω for the 5 V rail**.
+- Used the existing high-side shunts on the power PCB: **0.1 Î© for the motors** and **0.01 Î© for the 5 V rail**.
 - Designed potential-divider, differential-amplifier, and non-inverting gain stages around an **MCP6022 rail-to-rail dual op-amp**.
 - Simulated both sensing circuits in LTspice and selected gains that used most of the **0-4.096 V ADC range** without exceeding it.
 - Built and tested the circuits on breadboard, selected closely matched resistors, adjusted component values from measured results, and soldered the final perfboard implementation.
@@ -51,11 +61,11 @@ The original university specification and starter platform are documented in the
 
 <img width="1940" height="525" alt="Figure 2.4: Flip control-loop block diagram" src="https://github.com/user-attachments/assets/c392782c-0629-4441-a408-6fd4e55275c4" />
 
-*Control-loop block diagram from the group report, Figure 2.4.* The PI velocity controller sets the target tilt; the tilt controller produces acceleration, which is integrated into the wheel-velocity command. The PD yaw controller adds a differential steering offset. Tilt and heading feed back through the MPU6050.
+*Control-loop block diagram from the group report, Figure 2.4.* It depicts the final cascaded velocity and tilt control concept, with a separate yaw controller mixed into the motor command. The MPU6050 supplies tilt and yaw-rate feedback.
 
-The report labels the velocity feedback “wheel encoders.” The implementation used the stepper library's speed estimate (a virtual encoder), not physical wheel encoders.
+The report labels the velocity feedback â€œwheel encoders.â€ The implementation used the stepper library's speed estimate (a virtual encoder), not physical wheel encoders.
 
-The final static-control structure was:
+During static-balance development, a tested controller included velocity damping:
 
 ```text
 target_acceleration = Kp * angle_error
@@ -63,7 +73,7 @@ target_acceleration = Kp * angle_error
                     - Kv * integrated_velocity
 ```
 
-The acceleration command was integrated each control iteration to obtain the target wheel velocity. This produced smoother wheel commands than sending discontinuous velocity steps directly to the motors.
+The acceleration command was integrated each control iteration to obtain the target wheel velocity. The `Kv` term helped with static oscillation, but this exact expression should not be read as the final integrated controller: the later PI velocity outer loop was kept active and `Kv` was removed during movement tuning.
 
 More detail is available in [Control system development](control-system.md).
 
@@ -72,15 +82,15 @@ More detail is available in [Control system development](control-system.md).
 | Measurement | Interface | Purpose |
 |---|---|---|
 | Battery voltage | Potential divider | Estimate remaining battery level safely |
-| Motor current | 0.1 Ω shunt + differential and gain stages | Measure motor demand during balancing and movement |
-| 5 V rail current | 0.01 Ω shunt + differential and gain stages | Measure the ESP32, Raspberry Pi, and peripheral load |
+| Motor current | 0.1 Î© shunt + differential and gain stages | Measure motor demand during balancing and movement |
+| 5 V rail current | 0.01 Î© shunt + differential and gain stages | Measure the ESP32, Raspberry Pi, and peripheral load |
 
 The practical calibration sweeps remained highly linear:
 
-| Circuit | Measured calibration | R² |
+| Circuit | Measured calibration | RÂ² |
 |---|---:|---:|
-| Motor rail | `Vout = 16.936 * ΔVin + 0.2617` | 0.9994 |
-| 5 V rail | `Vout = 97.936 * ΔVin + 0.0179` | 0.9981 |
+| Motor rail | `Vout = 16.936 * Î”Vin + 0.2617` | 0.9994 |
+| 5 V rail | `Vout = 97.936 * Î”Vin + 0.0179` | 0.9981 |
 
 More detail is available in [Power-monitoring hardware](power-monitoring.md).
 
@@ -90,7 +100,7 @@ More detail is available in [Power-monitoring hardware](power-monitoring.md).
 - Reduced balance oscillation while avoiding the increased motor current caused by excessive derivative gain.
 - Enabled remote forward/backward motion while maintaining balance.
 - Developed power-monitoring circuits whose outputs remained within the ADC range and exhibited near-linear measured responses.
-- Integrated balancing, movement, steering, autonomous sensing, telemetry, and a remote web interface into one demonstrator.
+- Integrated balancing, remote control, telemetry, and line-following behaviour in the team demonstrator. The report documents additional obstacle and maze-navigation work without a complete measured end-to-end evaluation of those modes.
 
 ## What I learned
 
